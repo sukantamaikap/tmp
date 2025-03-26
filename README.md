@@ -12,80 +12,9 @@ This platform relies on a few Pocketbase collections to track payment and credit
 
 lq stands for LemonSqueezy, i.e these collections are payment platform specific. In the future, if we work on integrating with Paddle for example, we need to create Paddle specific equivalents for these collections (Example: pd_webhook_events, pd_purchases etc). `checkout_intents` and `credit_balances` are intended to be used as payment platform agnostic collections. `checkout_intents` get populated as soon as a user clicks the `Buy` or `Generate Now` button. We create a checkout_intents record and pass it on to the payment platform along with the respective userId. All subsequent payment webhook payloads have both these fields for us to reconcile. Below are the details of these collections and their relations:
 
-```marmaid
-erDiagram
-    checkout_intents ||--o{ lq_webhook_events : "tracks"
-    checkout_intents ||--o{ lq_purchases : "results_in"
-    checkout_intents ||--o{ lq_subscriptions : "results_in"
-    users ||--o{ checkout_intents : "initiates"
-    users ||--o| credit_balances : "has"
-    users ||--o{ lq_purchases : "owns"
-    users ||--o{ lq_subscriptions : "subscribes"
+Github somehow does not like mermaid ER Diagrams. So, attached it as a png file (the empty box on the left is users collection)
 
-    checkout_intents {
-        string id PK
-        string user FK
-        string product_id
-        string variant_id
-        enum purchase_type "one_time|subscription"
-        enum status "pending|completed|processing|abandoned|failed"
-        datetime completed_at
-        boolean webhook_received
-        string subscription_id
-        string order_id "order_id is the unque id sent by the payment platform. This is recoreded as lemonsqueezy_id in the platform specific collections"
-        json error_details
-    }
-
-    lq_webhook_events {
-        string id PK
-        string webhook_id
-        string event_type
-        string lemonsqueezy_id
-        string order_number
-        enum status "pending|completed|failed"
-        json processing_details
-        json error_details
-        string checkout_intent FK
-        enum payment_platform "lemonsqueezy|stripe|paddle"
-    }
-
-    lq_purchases {
-        string id PK
-        string user FK
-        string lemonsqueezy_id
-        string product_id
-        string variant_id
-        string subscription_id
-        number total_credits
-    }
-
-    lq_subscriptions {
-        string id PK
-        string user FK
-        string subscription_id
-        string product_id
-        string variant_id
-        enum status "init|active|cancelled|payment_failed"
-        datetime renews_at
-        datetime ends_at
-        string card_brand
-        string card_last_four
-        number total_credits
-        json portal_urls
-    }
-
-    credit_balances {
-        string id PK
-        string user FK
-        number total_credits
-        number used_credits
-        number held_credits
-    }
-```
-
-Github somehow does not like mermaid ER Diagrams. So, attached it as a png file:
-
-
+![ER Diagram](./mermaid-diagram-2025-03-26-210356.svg)
 
 ## Payment
 
